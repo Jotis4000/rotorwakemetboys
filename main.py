@@ -23,14 +23,19 @@ airfoil = "data/ARAD8pct_polar.txt"
 U0 = 60
 RPM = 1200
 h = 2000
+rho = 1.00649
 fi = 0
 ry = 0
 
+
+
 maxiter = 101
+tol = 1e-6
 
 ### Calculate geometry specification
 
 c, theta, sigma = defgeom.defGeom(R,B,x,start,tdist,pitch,cdist)
+Vax,Vtgt,Veff,phi = defgeom.calcPhi(x,R,RPM,U0)
 
 ### Obtain forces
 
@@ -42,4 +47,6 @@ iter=0
 while iter<maxiter:
 
     temp=0
+    
+    ### ADD CONVERGENCE CHECK HERE
     iter+=1

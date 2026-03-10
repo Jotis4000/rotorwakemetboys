@@ -19,6 +19,15 @@ def defGeom(R, B, x, start, tdist, pitch, cdist):
 
     return c, theta, sigma
 
+def calcPhi(x,R,RPM,U0):
+
+    Vax = U0
+    Vtgt = x*(2*np.pi*R)*RPM/60
+    Veff = np.sqrt(Vax**2+Vtgt**2)
+    phi = np.arctan(Vax/Vtgt)
+
+    return Vax,Vtgt,Veff,phi
+
 # c, theta, sigma = defGeom(R,B,x,start,twist,pitch,cdist)
 
 # import matplotlib.pyplot as plt
