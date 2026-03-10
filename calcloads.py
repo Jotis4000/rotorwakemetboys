@@ -54,7 +54,6 @@ def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, B, getf
         alpha = theta - phi
         
         # get cl and cd
-        # TODO: Ensure getforces_func takes alpha in the correct units (rad or deg)
         Cl, Cd = getforces_func(alpha)
         
         # axial and azimuthal force coefficients
