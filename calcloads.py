@@ -20,29 +20,31 @@ def getforces(alpha_rad, alpha_polar_deg, cl_polar, cd_polar):
     return cl_val, cd_val
 
 
-def calcloads(phi, theta, getforces_func):
+# def calcloads(phi, theta, getforces_func):
 
-    alpha = theta - phi
+#     alpha = theta - phi
     
-    Cl, Cd = getforces_func(alpha)
+#     Cl, Cd = getforces_func(alpha)
     
-    Cn = Cl * np.cos(phi) - Cd * np.sin(phi)
-    Ct = Cl * np.sin(phi) + Cd * np.cos(phi)
+#     Cn = Cl * np.cos(phi) - Cd * np.sin(phi)
+#     Ct = Cl * np.sin(phi) + Cd * np.cos(phi)
     
-    return Cl, Cd, Cn, Ct, alpha
+#     return Cl, Cd, Cn, Ct, alpha
 
-def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, B, getforces_func):
+def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, foilpath):
 
-    a = 0.0
+    a = 0.3
     a_prime = 0.0
-    tolerance = 1e-5
-    max_iter = 100
+    tolerance = 1e-6
+    max_iter = 1000
     iteration = 0
     error = 1.0
     
     #solidity
-    sigma = (B * chord) / (2 * np.pi * r_local)
+    # sigma = (B * chord) / (2 * np.pi * r_local)
     
+    alpha_polar_deg, cl_polar, cd_polar = load_airfoil_data(foilpath)
+
     while error > tolerance and iteration < max_iter:
         a_old = a
         aprime_old = a_prime
@@ -54,7 +56,7 @@ def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, B, getf
         alpha = theta - phi
         
         # get cl and cd
-        Cl, Cd = getforces_func(alpha)
+        Cl, Cd = getforces(alpha, alpha_polar_deg, cl_polar, cd_polar)
         
         # axial and azimuthal force coefficients
         Cn = Cl * np.cos(phi) -Cd *np.sin(phi)
@@ -69,6 +71,7 @@ def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, B, getf
 
         #root correction
         exp_arg_root = -(B * (r_local - R_root)) / (2 * r_local * sin_phi)
+        # print(np.exp(exp_arg_root))
         F_root = (2 / np.pi) * np.arccos(np.exp(exp_arg_root))    
 
         #combined correction
@@ -79,10 +82,18 @@ def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, B, getf
         a = (sigma * Cn) / (4 * F * (np.sin(phi)**2) - sigma * Cn + 1e-8)
         a_prime = (sigma * Ct) / (4 * F * np.sin(phi) * np.cos(phi) + sigma * Ct + 1e-8)
         
+        a = 0.25*a+0.75*a_old
+        a_prime = 0.25*a_prime+0.75*aprime_old
+
         # 7. Convergence check
         error = abs(a - a_old) + abs(a_prime - aprime_old)
+        # print(error)
         iteration += 1
         
+    # print(a)
+    # print(a_prime)
+    # print(alpha)
+
     # Calculate loads
     V_rel =(U0*(1+a))/np.sin(phi)
     rho = 1.0065 # Isa adjusted for 2000m altitude
