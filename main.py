@@ -27,6 +27,8 @@ h = 2000
 rho = 1.00649
 fi = 0
 ry = 0
+J = U0/(RPM/60*2*R)
+print("Advance Ratio J: "+str(J))
 
 maxiter = 101
 tol = 1e-6
@@ -46,8 +48,7 @@ results =np.zeros([len(x)-1,7])
 
 for i in range(len(x)-1):
 
-    results[i,:] = calcloads.calculate_element_loads2(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,phi[i],airfoil) # dT, dQ, a, a_prime, phi, alpha
-
+    results[i,:] = calcloads.calculate_element_loads3(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,phi[i],J,airfoil) # dT, dQ, a, a_prime, phi, alpha
 
 plt.plot(x[:99],results[:,2],label="a")
 plt.plot(x[:99],results[:,3],label="a'")
