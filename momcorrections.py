@@ -33,38 +33,39 @@ def PrandtlTipLossCorrection(x, x_root, lada, B, a, ap):
 
 
     # Rotor parameters
-B = 3          
-lada = 8.0     
-x_root = 0   
-a_guess = 0.3  # Assumed uniform axial induction for the sake of the plot
-ap_guess = 0.01
 
-# Create radial array, slightly offsetting from exact 0.2 and 1.0 to avoid 0.0 values inside the arccos
-radii = np.linspace(x_root + 0.001, 0.999, 100)
+# B = 3          
+# lada = 8.0     
+# x_root = 0   
+# a_guess = 0.3  # Assumed uniform axial induction for the sake of the plot
+# ap_guess = 0.01
 
-F_tot_vals = []
-F_tip_vals = []
-F_root_vals = []
+# # Create radial array, slightly offsetting from exact 0.2 and 1.0 to avoid 0.0 values inside the arccos
+# radii = np.linspace(x_root + 0.001, 0.999, 100)
 
-for x in radii:
-    ftot, ftip, froot = PrandtlTipLossCorrection(x, x_root, lada, B, a_guess, ap_guess)
-    F_tot_vals.append(ftot)
-    F_tip_vals.append(ftip)
-    print(ftip)
-    F_root_vals.append(froot)
+# F_tot_vals = []
+# F_tip_vals = []
+# F_root_vals = []
+
+# for x in radii:
+#     ftot, ftip, froot = PrandtlTipLossCorrection(x, x_root, lada, B, a_guess, ap_guess)
+#     F_tot_vals.append(ftot)
+#     F_tip_vals.append(ftip)
+#     print(ftip)
+#     F_root_vals.append(froot)
 
 # Generate Plot
 
-plt.figure(figsize=(8, 5))
-plt.plot(radii, F_tip_vals, linestyle='--', color='blue')
-plt.plot(radii, F_root_vals, linestyle='--', color='red')
-# plt.plot(radii, F_tot_vals, label='Total Loss Factor ($F_{tot}$)', linewidth=2, color='black')
+# plt.figure(figsize=(8, 5))
+# plt.plot(radii, F_tip_vals, linestyle='--', color='blue')
+# plt.plot(radii, F_root_vals, linestyle='--', color='red')
+# # plt.plot(radii, F_tot_vals, label='Total Loss Factor ($F_{tot}$)', linewidth=2, color='black')
 
-plt.title('Prandtl Tip and Root Loss Corrections')
-plt.xlabel('Non-dimensional radius ($r/R$)')
-plt.ylabel('Correction Factor ($F$)')
-plt.xlim([0, 1])
-plt.ylim([0, 1.1])
-plt.grid(True)
-plt.legend()
-plt.show()
+# plt.title('Prandtl Tip and Root Loss Corrections')
+# plt.xlabel('Non-dimensional radius ($r/R$)')
+# plt.ylabel('Correction Factor ($F$)')
+# plt.xlim([0, 1])
+# plt.ylim([0, 1.1])
+# plt.grid(True)
+# plt.legend()
+# plt.show()
