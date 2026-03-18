@@ -41,7 +41,7 @@ def corrections(phi,B,R,r_local,R_root):
 
     return F
 
-def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, phi, J, foilpath):
+def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, J, foilpath):
 
     a = 0.3
     a_prime = 0.0
@@ -67,9 +67,14 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         Cl, Cd = getforces(alpha, alpha_polar_deg, cl_polar, cd_polar)
         
         F = corrections(phi,B,R,r_local,R_root)
-        
+        if F==0:
+            F=0.27
+
         f1 = sigma*(Cl*np.cos(phi))/(4*F*np.sin(phi)**2)
         f2 = sigma*(Cl)/(4*F*np.cos(phi))
+
+        Cn = Cl * np.cos(phi) -Cd *np.sin(phi)
+        Ct = Cl *np.sin(phi)+ Cd * np.cos(phi)
 
         a = f1/(1-f1)
         a_prime = f2/(1+f2)
@@ -77,7 +82,7 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         a = 0.25*a+0.75*a_old
         a_prime = 0.25*a_prime+0.75*aprime_old
 
-        # if a>1: a=1
+        if a>=0.95: a=0.95
         # if a_prime>1: a_prime=1
 
         # 7. Convergence check
@@ -94,9 +99,9 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
     # Calculate loads
     V_rel =(U0*(1+a))/np.sin(phi)
     rho = 1.0065 # Isa adjusted for 2000m altitude
-    # dT = 0.5 * rho * (V_rel**2) * chord * Cn
-    # dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local
-    dT=dQ=1
+    dT = 0.5 * rho * (V_rel**2) * chord * Cn
+    dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local
+    # dT=dQ=1
     
     return dT, dQ, a, a_prime, phi, alpha, F
 
