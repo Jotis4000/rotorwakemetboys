@@ -12,6 +12,10 @@ def load_airfoil_data(path):
     
     return alpha_polar_deg, cl_polar, cd_polar
 
+# alpha_polar_deg, cl_polar, cd_polar = load_airfoil_data('data/ARAD8pct_polar.txt')
+# plt.plot(alpha_polar_deg,cl_polar)
+# plt.show()
+
 def getforces(alpha_rad, alpha_polar_deg, cl_polar, cd_polar):
     alpha_deg = np.degrees(alpha_rad)
     
@@ -99,13 +103,13 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
     # Calculate loads
     V_rel =(U0*(1+a))/np.sin(phi)
     rho = 1.0065 # Isa adjusted for 2000m altitude
-    dT = 0.5 * rho * (V_rel**2) * chord * Cn
-    dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local
+    dT = 0.5 * rho * (V_rel**2) * chord * Cn * B
+    dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local * B
     # dT=dQ=1
     
     return dT, dQ, a, a_prime, phi, alpha, F
 
-def calculate_element_loads2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, phi, foilpath):
+def calculate_element_loads2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, J, foilpath):
 
     a = 0.3
     a_prime = 0.0
@@ -142,40 +146,48 @@ def calculate_element_loads2(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         Faz = lift*np.sin(phi)-drag*np.cos(phi)
         Fax = lift*np.cos(phi)+drag*np.sin(phi)
 
+        F = corrections(phi,B,R,r_local,R_root)
+        if F==0:
+            F=0.27
+
         CT = (Fax*B)/(0.5*rho*U0**2*2*np.pi*r_local)
-        a = 0.5*(np.sqrt(1+CT)-1)
+        a = 0.5*(np.sqrt(1+CT/F)-1)
         aprime = (Faz*B)/(2*rho*(2*np.pi*r_local)*U0**2*(1-a)*lada*r_local/R)
 
-        #Prandtl Tip and Root Corrections
-        sin_phi = abs(np.sin(phi)) + 1e-8  # Avoid division by zero
+        # #Prandtl Tip and Root Corrections
+        # sin_phi = abs(np.sin(phi)) + 1e-8  # Avoid division by zero
 
-        #tip correction
-        exp_arg_tip = -(B * (R - r_local)) / (2 * r_local * sin_phi)
-        F_tip = (2 / np.pi) * np.arccos(np.exp(exp_arg_tip))
+        # #tip correction
+        # exp_arg_tip = -(B * (R - r_local)) / (2 * r_local * sin_phi)
+        # F_tip = (2 / np.pi) * np.arccos(np.exp(exp_arg_tip))
 
-        #root correction
-        exp_arg_root = -(B * (r_local - R_root)) / (2 * r_local * sin_phi)
-        # print(np.exp(exp_arg_root))
-        F_root = (2 / np.pi) * np.arccos(np.exp(exp_arg_root))    
+        # #root correction
+        # exp_arg_root = -(B * (r_local - R_root)) / (2 * r_local * sin_phi)
+        # # print(np.exp(exp_arg_root))
+        # F_root = (2 / np.pi) * np.arccos(np.exp(exp_arg_root))    
 
-        #combined correction
-        F = F_tip * F_root
+        # #combined correction
+        # F = F_tip * F_root
 
-        a = a/F
-        aprime = aprime/F
+        # a = a/F
+        # aprime = aprime/F
 
         # a = 0.5*(np.sqrt(1+CT/F)-1)
         # aprime = (Faz*B)/(2*rho*(2*np.pi*r_local)*U0**2*(1-a)*lada*r_local/R)
 
         a = 0.25*a+0.75*a_old
         a_prime = 0.25*a_prime+0.75*aprime_old
+        if a>=0.95: a=0.95
+
+        Cn = Cl * np.cos(phi) - Cd *np.sin(phi)
+        Ct = Cl *np.sin(phi) + Cd * np.cos(phi)
 
         # convergence check
         error = abs(a - a_old) + abs(a_prime - aprime_old)
         # print(error)
         iteration += 1
 
-    print("Finished in "+str(iteration)+" iterations.")
+    # print("Finished in "+str(iteration)+" iterations.")
 
     # print(a)  
     # print(a_prime)
@@ -184,12 +196,14 @@ def calculate_element_loads2(r_local, R, R_root, chord, theta, U0, Omega, sigma,
     # Calculate loads
     V_rel =(U0*(1+a))/np.sin(phi)
     rho = 1.0065 # Isa adjusted for 2000m altitude
-    dT = 1
-    dQ = 1
+    # dT = 0.5 * rho * (V_rel**2) * chord * Cn * B
+    # dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local * B
+    dT = Fax * B
+    dQ = Faz * B * r_local
 
     return dT, dQ, a, aprime, phi, alpha, F
 
-def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, phi, J, foilpath):
+def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, J, foilpath):
 
     a = 0.3
     a_prime = 0.0
@@ -263,7 +277,7 @@ def calculate_element_loads(r_local, R, R_root, chord, theta, U0, Omega, sigma, 
     # Calculate loads
     V_rel =(U0*(1+a))/np.sin(phi)
     rho = 1.0065 # Isa adjusted for 2000m altitude
-    dT = 0.5 * rho * (V_rel**2) * chord * Cn
-    dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local
+    dT = 0.5 * rho * (V_rel**2) * chord * Cn * B
+    dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local * B
     
     return dT, dQ, a, a_prime, phi, alpha, F

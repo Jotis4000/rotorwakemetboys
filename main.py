@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 import matplotlib.pyplot as plt
 import defgeom
 import calcloads
@@ -65,6 +66,7 @@ plt.rcParams.update({
 })
 
 # print(results[1,1,6])
+# plt.plot(x[:99],np.degrees(results[0,:,5]),label=r"$a$",color="black")
 
 fig = plt.figure(figsize=(8,5))
 plt.title(r"Spanwise Distribution of $\alpha$ and $\phi$")
@@ -97,14 +99,25 @@ T = np.zeros(len(J))
 Q = np.zeros(len(J))
 # print(len(J))
 for i in range(len(J)):
-    T[i] = sum(results[i,:,0])
-    Q[i] = sum(results[i,:,1])
+    tempT=0
+    tempQ=0
+    for j in range(len(results[i,:,1])):
+        tempT+=results[i,j,0]*(x[j+1]-x[j])*R
+        T[i]=tempT
+        tempQ+=results[i,j,1]*(x[j+1]-x[j])*R
+        Q[i]=tempQ
 
-    print(results[i,:,0])
-    print(i)
 
-plt.plot(J,T/1000,label="Thrust")
-plt.plot(J,Q/1000,label="Torque")
+    # T[i] = sp.integrate.quad(x*R,results[i,:,1])
+    
+    # sum(results[i,:,0])
+    # Q[i] = sum(results[i,:,1])
+
+    # print(results[i,:,0])
+    # print(i)
+
+plt.plot(J,T,label="Thrust")
+plt.plot(J,Q,label="Torque")
 plt.xlabel("Advance Ratio J [-]")
 plt.ylabel("Force or Moment [N or N]") ## THIS IS RETARDED FIND BETTER WAY TO PLOT
 plt.legend()
