@@ -116,8 +116,13 @@ for i in range(len(J)):
     # print(results[i,:,0])
     # print(i)
 
-plt.plot(J,T,label="Thrust")
-plt.plot(J,Q,label="Torque")
+P = Q*RPM/60*2*np.pi
+
+# plt.plot(J,T,label="Thrust")
+# plt.plot(J,Q,label="Torque")
+plt.plot(J,P/1000,label="Power")
+print(P)
+plt.plot()
 plt.xlabel("Advance Ratio J [-]")
 plt.ylabel("Force or Moment [N or N]") ## THIS IS RETARDED FIND BETTER WAY TO PLOT
 plt.legend()
