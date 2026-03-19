@@ -48,9 +48,13 @@ for j in range(len(results[:,1])):
 
 T=tempT
 Q=tempQ
+P = Q*RPM/60*2*np.pi
+
+CP = P*2/(rho*np.pi*R**2*U0**3)
 
 print(T)
 print(Q)
+print(CP)
 
 fig2 = plt.figure(figsize=(8,5))
 plt.title(r"Spanwise Distribution of $a$ and $a'$")

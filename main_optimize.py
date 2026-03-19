@@ -1,4 +1,4 @@
-from scipy.optimize import minimize
+from scipy.optimize import minimize,dual_annealing,differential_evolution
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -6,13 +6,14 @@ import defgeom
 import calcloads
 import getforces
 import momcorrections
-from objectivefunction import objectivefunction
+from objectivefunction import objectivefunction,objectivefunctionQuad,objectivefunctionQuadNew
 
 ### Geometry Configuration
 
 start = 0.25
 
-x = np.linspace(start,1,100)
+el = 50
+x = np.linspace(start,1,el)
 
 R = 0.7
 B = 6
@@ -46,15 +47,83 @@ bounds = [
     (0.01, 0.1) 
 ]
 
-res = minimize(
-    objectivefunction, 
-    initial_guess, 
-    args= (R, B, start, U0, RPM, J, x, airfoil), 
-    method='powell',
-    bounds=bounds,
-    callback=monitor_progress,
-    options={'disp': True}
-)
+boundsQuad = [
+    (-2,2),
+    (-2,2),    
+    (0, 1),    
+    (0, 45),
+    (-2,-1),
+    (0,2),    
+    (0.1, 0.5)  
+]
+
+boundsQuadNew = [
+    (20,80),
+    (-10,40),    
+    (-20,20),    
+    (-10,20),
+    (0.1,0.18),
+    (0.05,0.2),    
+    (0.01, 0.08)  
+]
+
+# res = minimize(
+#     objectivefunction, 
+#     initial_guess, 
+#     args= (R, B, start, U0, RPM, J, x, airfoil), 
+#     method='Nelder-Mead',
+#     bounds=bounds,
+#     callback=monitor_progress,
+#     options={'disp': True}
+# )
+
+res = differential_evolution(objectivefunctionQuadNew,boundsQuadNew,args=(R, B, start, U0, RPM, J, x, airfoil),strategy='best1bin', 
+                                maxiter=50, popsize=15, polish=True, disp=True)
 
 print(f"Optimal variables: {res.x}")
-print(f"Maximum PowerCoefficient: {-res.fun*2/rho*np.pi*R**2*U0**3}")
+print(f"Maximum PowerCoefficient: {-res.fun*2/(rho*np.pi*R**2*U0**3)}")
+
+# twist = res.x[0]*x**2+res.x[1]*x+res.x[2]+res.x[3]
+# chord = res.x[4]*x**2+res.x[5]*x+res.x[6]
+xi = [0.25,0.4,1.0]
+tcoeff = np.polyfit(xi,[res.x[0],res.x[1],res.x[2]+res.x[3]],2)
+ccoeff = np.polyfit(xi,[res.x[4],res.x[5],res.x[6]],2)
+
+twist = tcoeff[0]*x**2+tcoeff[1]*x+tcoeff[2]
+chord = ccoeff[0]*x**2+ccoeff[1]*x+ccoeff[2]
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+
+ax1.plot(x,twist)
+ax1.set_title("Blade Twist Distribution")
+ax1.set_xlabel("Radial Position (r/R)")
+ax1.set_ylabel("Twist Angle (deg)")
+ax1.grid(True)
+ax1.legend()
+
+ax2.plot(x,chord)
+ax2.set_title("Blade Chord Distribution")
+ax2.set_xlabel("Radial Position (r/R)")
+ax2.set_ylabel("Chord Length (m)")
+ax2.grid(True)
+ax2.legend()
+
+# Plot Twist on the first axis (left)
+# ax1.plot(x, twist, label="Twist", color='blue')
+# ax1.set_title("Blade Twist Distribution")
+# ax1.set_xlabel("Radial Position (r/R)")
+# ax1.set_ylabel("Twist Angle (deg)")
+# ax1.grid(True)
+# ax1.legend()
+
+# # Plot Chord on the second axis (right)
+# ax2.plot(x, chord, label="Chord", color='green')
+# ax2.set_title("Blade Chord Distribution")
+# ax2.set_xlabel("Radial Position (r/R)")
+# ax2.set_ylabel("Chord Length (m)")
+# ax2.grid(True)
+# ax2.legend()
+
+# Adjust layout so labels don't overlap
+plt.tight_layout()
+plt.show()

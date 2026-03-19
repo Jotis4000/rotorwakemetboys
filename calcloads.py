@@ -110,6 +110,9 @@ def calculate_turbine2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, fo
     dT = Fax*B
     dQ = Faz*B*r_local
 
+    # print(dT)
+    # print(dQ)
+
     return dT, dQ, a, a_prime, phi, alpha, F
 
 def calculate_turbine(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, foilpath):

@@ -10,7 +10,8 @@ import momcorrections
 
 start = 0.25
 
-x = np.linspace(start,1,100)
+el = 50
+x = np.linspace(start,1,el)
 
 R = 0.7
 B = 6
@@ -70,8 +71,8 @@ plt.rcParams.update({
 
 fig = plt.figure(figsize=(8,5))
 plt.title(r"Spanwise Distribution of $\alpha$ and $\phi$")
-plt.plot(x[:99],np.degrees(results[0,:,5]),label=r"$\alpha$",color="black")
-plt.plot(x[:99],np.degrees(results[0,:,4]),label=r"$\phi$",color="red")
+plt.plot(x[:(el-1)],np.degrees(results[0,:,5]),label=r"$\alpha$",color="black")
+plt.plot(x[:(el-1)],np.degrees(results[0,:,4]),label=r"$\phi$",color="red")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel("Angle ($\degree$)")
 plt.legend()
@@ -79,8 +80,8 @@ plt.show()
 
 fig2 = plt.figure(figsize=(8,5))
 plt.title(r"Spanwise Distribution of $a$ and $a'$")
-plt.plot(x[:99],results[0,:,2],label=r"$a$",color="black")
-plt.plot(x[:99],results[0,:,3],label=r"$a'$",color="red")
+plt.plot(x[:(el-1)],results[0,:,2],label=r"$a$",color="black")
+plt.plot(x[:(el-1)],results[0,:,3],label=r"$a'$",color="red")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel("Induction [-]")
 plt.legend()
@@ -88,8 +89,8 @@ plt.show()
 
 fig3 = plt.figure(figsize=(8,5))
 plt.title(r"Spanwise Distribution of $dT$ and $dQ$")
-plt.plot(x[:99],results[0,:,0],label=r"$dT$",color="orange")
-plt.plot(x[:99],results[0,:,1],label=r"$dQ$",color="green")
+plt.plot(x[:(el-1)],results[0,:,0],label=r"$dT$",color="orange")
+plt.plot(x[:(el-1)],results[0,:,1],label=r"$dQ$",color="green")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel("Force or Moment [N or Nm]") ## THIS IS RETARDED
 plt.legend()
