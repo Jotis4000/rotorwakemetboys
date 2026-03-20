@@ -6,7 +6,7 @@ import defgeom
 import calcloads
 import getforces
 import momcorrections
-from objectivefunction import objectivefunction,objectivefunctionQuad,objectivefunctionQuadNew
+from objectivefunction import objectivefunction,objectivefunctionQuad,objectivefunctionQuadNew,objectivefunctionBez
 
 ### Geometry Configuration
 
@@ -67,6 +67,18 @@ boundsQuadNew = [
     (0.01, 0.08)  
 ]
 
+boundsBez = [
+    (20,80),
+    (10,60),
+    (-10,40),    
+    (-20,20),    
+    (-20,40),
+    (0.1,0.2),
+    (0.1,0.22),
+    (0.05,0.18),    
+    (0.01, 0.14)  
+]
+
 # res = minimize(
 #     objectivefunction, 
 #     initial_guess, 
@@ -77,20 +89,16 @@ boundsQuadNew = [
 #     options={'disp': True}
 # )
 
-res = differential_evolution(objectivefunctionQuadNew,boundsQuadNew,args=(R, B, start, U0, RPM, J, x, airfoil),strategy='best1bin', 
+xi = [0.25,0.5,0.75,1.0]
+
+res = differential_evolution(objectivefunctionBez,boundsBez,args=(R, B, start, U0, RPM, J, x, airfoil, xi),strategy='best1bin', 
                                 maxiter=50, popsize=15, polish=True, disp=True)
 
 print(f"Optimal variables: {res.x}")
 print(f"Maximum PowerCoefficient: {-res.fun*2/(rho*np.pi*R**2*U0**3)}")
 
-# twist = res.x[0]*x**2+res.x[1]*x+res.x[2]+res.x[3]
-# chord = res.x[4]*x**2+res.x[5]*x+res.x[6]
-xi = [0.25,0.4,1.0]
-tcoeff = np.polyfit(xi,[res.x[0],res.x[1],res.x[2]+res.x[3]],2)
-ccoeff = np.polyfit(xi,[res.x[4],res.x[5],res.x[6]],2)
-
-twist = tcoeff[0]*x**2+tcoeff[1]*x+tcoeff[2]
-chord = ccoeff[0]*x**2+ccoeff[1]*x+ccoeff[2]
+twist = sp.interpolate.pchip_interpolate(xi,[res.x[0]+res.x[4],res.x[1]+res.x[4],res.x[2]+res.x[4],res.x[3]+res.x[4]],x)
+chord = sp.interpolate.pchip_interpolate(xi,[res.x[5],res.x[6],res.x[7],res.x[8]],x)
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 

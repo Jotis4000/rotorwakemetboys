@@ -64,10 +64,10 @@ def calculate_turbine2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, fo
         aprime_old = a_prime
         
         Vax = U0*(1-a)
-        Vtan = Omega*r_local*1+a_prime
+        Vtan = Omega*r_local*(1+a_prime)
         Vp = np.sqrt(Vax**2+Vtan**2)
 
-        phi = np.arctan((U0 * (1 - a)) / (Omega * r_local * (1 + a_prime)))
+        phi = np.arctan2((U0 * (1 - a)),(Omega * r_local * (1 + a_prime)))
         alpha = phi - theta
 
         Cl, Cd = getforces(alpha, alpha_polar_deg, cl_polar, cd_polar)
@@ -87,15 +87,12 @@ def calculate_turbine2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, fo
         CT = (Fax*B)/(0.5*rho*U0**2*2*np.pi*r_local)
         CT1 = 1.816
         CT2 = 2*np.sqrt(CT1)-CT1
-        if CT<CT2:
-            a_new = 0.5-np.sqrt(1-CT)/2
+        if CT/F<CT2:
+            a_new = 0.5-np.sqrt(1-CT/F)/2
         else:
-            a_new = 1+(CT-CT1)/(4*np.sqrt(CT1)-4)
+            a_new = 1+(CT/F-CT1)/(4*np.sqrt(CT1)-4)
 
-        a_prime_new = (Faz*B)/(2*rho*2*np.pi*r_local*U0**2*(1-a_new)*lada*r_local/R)
-
-        a_new = a_new/F
-        a_prime_new = a_prime_new/F
+        a_prime_new = (Faz*B)/(2*rho*2*np.pi*r_local*U0**2*(1-a_new)*lada*r_local/R)/F
 
         # Apply relaxation to aid convergence
         a = 0.25 * a_new + 0.75 * a_old
@@ -202,10 +199,11 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         aprime_old = a_prime
         
         # Flow angle (phi)
-        phi = np.arctan((U0 * (1 + a)) / (Omega * r_local * (1 - a_prime)))
+        phi = np.arctan2((U0 * (1 + a)),(Omega * r_local * (1 - a_prime)))
         
         #Angle of attack (alpha)
         alpha = theta - phi
+        # print(np.degrees(alpha))
         
         # get cl and cd
         Cl, Cd = getforces(alpha, alpha_polar_deg, cl_polar, cd_polar)

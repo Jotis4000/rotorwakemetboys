@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 import defgeom
 import calcloads
 import getforces
@@ -115,5 +116,40 @@ def objectivefunctionQuadNew(params, R, B, start, U0, RPM, J, x, airfoil):
     # # Penalties for invalid geometry or NaNs
     # if np.any(c <= 0) or np.any(sigma <= 0) or np.isnan(P) or np.isinf(P):
     #     return 1e9
+
+    return -P
+
+def objectivefunctionBez(params, R, B, start, U0, RPM, J, x, airfoil, xi):
+
+    v1, v2, v3, v4, v5, v6, v7, v8, v9  = params
+
+    # Design Variables
+    tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[v1,v2,v3,v4],x))
+    cdist = sp.interpolate.pchip_interpolate(xi,[v6,v7,v8,v9],x)
+
+    pitch = np.radians(v5)
+    
+    # Define Geometry
+    c, theta, sigma = defgeom.defGeom(R, B, x, start, tdist, pitch, cdist)
+
+    n = len(x) - 1
+    results = np.zeros((n, 7))
+
+    # Run BEM
+    for i in range(n):
+        r_local = x[i] * R
+        results[i, :] = calcloads.calculate_turbine2(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,airfoil)
+
+    # Calc power
+    dr = np.diff(x * R)
+    omega = RPM / 60 * 2 * np.pi
+    Q = np.sum(results[:, 1] * dr)
+    P = omega * Q
+
+    # # Penalties for invalid geometry or NaNs
+    # if np.any(c <= 0) or np.any(sigma <= 0) or np.isnan(P) or np.isinf(P):
+    #     return 1e9
+
+    print(str(B*c/(2*np.pi*R)))
 
     return -P

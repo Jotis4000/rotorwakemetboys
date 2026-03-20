@@ -12,7 +12,7 @@ def getData(x,R,B,airfoil,tdist,pitch,cdist,U0,rho,RPM):
 
     results = np.zeros((len(x)-1,7))
     for i in range(len(x)-1):
-        results[i,:] = calcloads.calculate_turbine(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,airfoil) # dT, dQ, a, a_prime, phi, alpha
+        results[i,:] = calcloads.calculate_turbine2(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,airfoil) # dT, dQ, a, a_prime, phi, alpha
 
     return results
 
@@ -25,8 +25,13 @@ B = 6
 airfoil = "data/ARAD8pct_polar.txt"
 
 tdist = -np.radians(50)*x+np.radians(35) # for x>0.25
-pitch = np.radians(46) # x=0.7
+pitch = np.radians(20) # x=0.7
 cdist = 0.18-0.06*x # for x>0.25
+
+# xi = [0.25,0.5,0.75,1.0]
+# tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[33.0872443,26.61575089,20.80975062,8.55404546],x))
+# cdist = sp.interpolate.pchip_interpolate(xi,[0.2,0.22,0.15,0.14],x)
+# pitch = np.radians(40) # np.radians(0.03436332)
 
 ### Simulation Configuration
 
@@ -56,12 +61,25 @@ print(T)
 print(Q)
 print(CP)
 
+fig1 = plt.figure(figsize=(8,5))
+plt.plot(x[:99],results[:,6])
+plt.show()
+
 fig2 = plt.figure(figsize=(8,5))
 plt.title(r"Spanwise Distribution of $a$ and $a'$")
 plt.plot(x[:99],results[:,2],label=r"$a$",color="black")
 plt.plot(x[:99],results[:,3],label=r"$a'$",color="red")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel("Induction [-]")
+plt.legend()
+plt.show()
+
+fig = plt.figure(figsize=(8,5))
+plt.title(r"Spanwise Distribution of $\alpha$ and $\phi$")
+plt.plot(x[:(99)],np.degrees(results[:,5]),label=r"$\alpha$",color="black")
+plt.plot(x[:(99)],np.degrees(results[:,4]),label=r"$\phi$",color="red")
+plt.xlabel("$r/R$ [-]")
+plt.ylabel("Angle ($\degree$)")
 plt.legend()
 plt.show()
 

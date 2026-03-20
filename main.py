@@ -19,6 +19,11 @@ tdist = -np.radians(50)*x+np.radians(35) # for x>0.25
 pitch = np.radians(46) # x=0.7
 cdist = 0.18-0.06*x # for x>0.25
 
+# xi = [0.25,0.5,0.75,1.0]
+# tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[33.0872443,26.61575089,20.80975062,8.55404546],x))
+# cdist = sp.interpolate.pchip_interpolate(xi,[0.2,0.22,0.15,0.14],x)
+# pitch = np.radians(30)
+
 airfoil = "data/ARAD8pct_polar.txt"
 
 ### Simulation Configuration
