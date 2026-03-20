@@ -147,9 +147,9 @@ def objectivefunctionBez(params, R, B, start, U0, RPM, J, x, airfoil, xi):
     P = omega * Q
 
     # # Penalties for invalid geometry or NaNs
-    # if np.any(c <= 0) or np.any(sigma <= 0) or np.isnan(P) or np.isinf(P):
-    #     return 1e9
+    if np.any(np.degrees(results[:,5]))<-10:
+        return 1e9
 
-    print(str(B*c/(2*np.pi*R)))
+    # print(str(B*c/(2*np.pi*R)))
 
     return -P

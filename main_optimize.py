@@ -68,9 +68,9 @@ boundsQuadNew = [
 ]
 
 boundsBez = [
-    (20,80),
-    (10,60),
-    (-10,40),    
+    (20,60),
+    (10,40),
+    (0,0),    
     (-20,20),    
     (-20,40),
     (0.1,0.2),
@@ -78,6 +78,18 @@ boundsBez = [
     (0.05,0.18),    
     (0.01, 0.14)  
 ]
+
+# boundsBez = [
+#     (0,80),
+#     (0,60),
+#     (0,0),    
+#     (-20,20),    
+#     (-20,40),
+#     (0.1,0.2),
+#     (0.1,0.22),
+#     (0.05,0.18),    
+#     (0.01, 0.14)  
+# ]
 
 # res = minimize(
 #     objectivefunction, 
@@ -89,10 +101,10 @@ boundsBez = [
 #     options={'disp': True}
 # )
 
-xi = [0.25,0.5,0.75,1.0]
+xi = [0.25,0.5,0.7,1.0]
 
 res = differential_evolution(objectivefunctionBez,boundsBez,args=(R, B, start, U0, RPM, J, x, airfoil, xi),strategy='best1bin', 
-                                maxiter=50, popsize=15, polish=True, disp=True)
+                                maxiter=5, popsize=15, polish=True, disp=True)
 
 print(f"Optimal variables: {res.x}")
 print(f"Maximum PowerCoefficient: {-res.fun*2/(rho*np.pi*R**2*U0**3)}")

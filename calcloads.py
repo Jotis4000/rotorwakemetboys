@@ -14,6 +14,7 @@ def load_airfoil_data(path):
 
 # alpha_polar_deg, cl_polar, cd_polar = load_airfoil_data('data/ARAD8pct_polar.txt')
 # plt.plot(alpha_polar_deg,cl_polar)
+# # plt.plot(alpha_polar_deg,cl_polar/cd_polar)
 # plt.show()
 
 def getforces(alpha_rad, alpha_polar_deg, cl_polar, cd_polar):
@@ -45,6 +46,79 @@ def corrections(phi,B,R,r_local,R_root):
 
     return F
 
+def calculate_turbine3tokyodrift(r_local, R, R_root, chord, U0, Omega, B, foilpath):
+
+    a = 0.3
+    a_prime = 0.0
+    tolerance = 1e-6
+    max_iter = 1000
+    iteration = 0
+    error = 1.0
+    phi = 0
+    rho = 1.0065 # Isa adjusted for 2000m altitude
+    lada = Omega*R/U0
+    alpha = np.radians(-9)
+    Cl = -0.5365
+    Cd =  0.01863
+    
+    # alpha_polar_deg, cl_polar, cd_polar = load_airfoil_data(foilpath)
+
+    while error > tolerance and iteration < max_iter:
+        a_old = a
+        aprime_old = a_prime
+        
+        Vax = U0*(1-a)
+        Vtan = Omega*r_local*(1+a_prime)
+        Vp = np.sqrt(Vax**2+Vtan**2)
+
+        phi = np.arctan2((U0 * (1 - a)),(Omega * r_local * (1 + a_prime)))
+
+        theta = alpha+phi
+        
+        lift = 0.5*chord*rho*Vp**2*Cl
+        drag = 0.5*chord*rho*Vp**2*Cd
+
+        Faz = lift*np.sin(phi)-drag*np.cos(phi)
+        Fax = lift*np.cos(phi)+drag*np.sin(phi)
+
+        # Calculate inductions w corrections
+
+        F = corrections(phi,B,R,r_local,R_root)
+        if F==0:
+            F=0.27
+
+        CT = (Fax*B)/(0.5*rho*U0**2*2*np.pi*r_local)
+        CT1 = 1.816
+        CT2 = 2*np.sqrt(CT1)-CT1
+        if CT<CT2:
+            a_new = 0.5-np.sqrt(1-CT)/2
+        else:
+            a_new = 1+(CT-CT1)/(4*np.sqrt(CT1)-4)
+
+        a_prime_new = (Faz*B)/(2*rho*2*np.pi*r_local*U0**2*(1-a_new)*lada*r_local/R)
+
+        a_new = a_new/F
+        a_prime_new = a_prime_new/F
+
+        # Apply relaxation to aid convergence
+        a = 0.25 * a_new + 0.75 * a_old
+        a_prime = 0.25 * a_prime_new + 0.75 * aprime_old
+        if a>=0.95: a=0.95
+        if a_prime>0.95: a_prime=0
+
+        error = abs(a - a_old) + abs(a_prime - aprime_old)
+        # print(error)
+        iteration += 1
+
+    # Calculate loads
+    dT = Fax*B
+    dQ = Faz*B*r_local
+
+    # print(dT)
+    # print(dQ)
+
+    return dT, dQ, a, a_prime, phi, theta, F
+
 def calculate_turbine2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, foilpath):
 
     a = 0.3
@@ -68,7 +142,8 @@ def calculate_turbine2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, fo
         Vp = np.sqrt(Vax**2+Vtan**2)
 
         phi = np.arctan2((U0 * (1 - a)),(Omega * r_local * (1 + a_prime)))
-        alpha = phi - theta
+        # alpha = phi - theta
+        alpha = theta-phi ###CHANGED COMPARE TO ELEMENT LOAD 3
 
         Cl, Cd = getforces(alpha, alpha_polar_deg, cl_polar, cd_polar)
 
@@ -79,7 +154,7 @@ def calculate_turbine2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, fo
         Fax = lift*np.cos(phi)+drag*np.sin(phi)
 
         # Calculate inductions w corrections
-
+        
         F = corrections(phi,B,R,r_local,R_root)
         if F==0:
             F=0.27
@@ -87,17 +162,21 @@ def calculate_turbine2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, fo
         CT = (Fax*B)/(0.5*rho*U0**2*2*np.pi*r_local)
         CT1 = 1.816
         CT2 = 2*np.sqrt(CT1)-CT1
-        if CT/F<CT2:
-            a_new = 0.5-np.sqrt(1-CT/F)/2
+        if CT<CT2:
+            a_new = 0.5-np.sqrt(1-CT)/2
         else:
-            a_new = 1+(CT/F-CT1)/(4*np.sqrt(CT1)-4)
+            a_new = 1+(CT-CT1)/(4*np.sqrt(CT1)-4)
 
-        a_prime_new = (Faz*B)/(2*rho*2*np.pi*r_local*U0**2*(1-a_new)*lada*r_local/R)/F
+        a_prime_new = (Faz*B)/(2*rho*2*np.pi*r_local*U0**2*(1-a_new)*lada*r_local/R)
+
+        a_new = a_new/F
+        a_prime_new = a_prime_new/F
 
         # Apply relaxation to aid convergence
         a = 0.25 * a_new + 0.75 * a_old
         a_prime = 0.25 * a_prime_new + 0.75 * aprime_old
         if a>=0.95: a=0.95
+        if a_prime>0.95: a_prime=0
 
         error = abs(a - a_old) + abs(a_prime - aprime_old)
         # print(error)
@@ -203,7 +282,6 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         
         #Angle of attack (alpha)
         alpha = theta - phi
-        # print(np.degrees(alpha))
         
         # get cl and cd
         Cl, Cd = getforces(alpha, alpha_polar_deg, cl_polar, cd_polar)
@@ -211,6 +289,7 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         F = corrections(phi,B,R,r_local,R_root)
         if F==0:
             F=0.27
+            # F = 
 
         f1 = sigma*(Cl*np.cos(phi))/(4*F*np.sin(phi)**2)
         f2 = sigma*(Cl)/(4*F*np.cos(phi))
@@ -225,7 +304,7 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         a_prime = 0.25*a_prime+0.75*aprime_old
 
         if a>=0.95: a=0.95
-        # if a_prime>1: a_prime=1
+        if a_prime>0.95: a_prime=0
 
         # 7. Convergence check
         error = abs(a - a_old) + abs(a_prime - aprime_old)
