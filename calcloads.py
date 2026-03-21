@@ -288,8 +288,11 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         
         F = corrections(phi,B,R,r_local,R_root)
         if F==0:
-            F=0.27
+            F=0.2
             # F = 
+
+        # if(r_local==0.25*0.7):
+        #     print(F)
 
         f1 = sigma*(Cl*np.cos(phi))/(4*F*np.sin(phi)**2)
         f2 = sigma*(Cl)/(4*F*np.cos(phi))
@@ -307,6 +310,10 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         if a<=-0.95: a=-0.95
         if a_prime>0.95: a_prime=0.4
         if a_prime<=-0.95: a_prime=-0.4
+
+        # if r_local < R_root * 1.05: # Apply a 5% buffer near the root
+        #     a = 0
+        #     a_prime = 0
 
         # 7. Convergence check
         error = abs(a - a_old) + abs(a_prime - aprime_old)
