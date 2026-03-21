@@ -10,7 +10,7 @@ import momcorrections
 
 start = 0.25
 
-el = 50
+el = 200
 x = np.linspace(start,1,el)
 
 R = 0.7
@@ -25,9 +25,9 @@ cdist = 0.18-0.06*x # for x>0.25
 # pitch = np.radians(30)
 
 # xi = [0.25,0.5,0.7,1.0]
-# tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[10.90035694,3.7214586,0,-12.62668013],x))
-# cdist = sp.interpolate.pchip_interpolate(xi,[0.2,0.22,0.18,0.14],x)
-# pitch = np.radians(57.10674679) # 21.10674679
+# tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[20.8362307,   10.03308008,   0.,         -10.06593984],x))
+# cdist = sp.interpolate.pchip_interpolate(xi,[0.16263473,   0.18026756,   0.17807533,   0.13926443],x)
+# pitch = np.radians(30.85819216) # 21.10674679
 
 airfoil = "data/ARAD8pct_polar.txt"
 
@@ -40,6 +40,7 @@ fi = 0
 ry = 0
 
 J = np.array([1.6,2.0,2.4]) #1.95
+# J = np.array([1.6,2.14285714,2.4]) #1.95
 RPM = U0/(J*2*R)*U0
 print("Advance Ratio J: "+str(J))
 print("RPM: "+str(RPM))
@@ -50,6 +51,24 @@ tol = 1e-6
 ### Calculate geometry specification
 
 c, theta, sigma = defgeom.defGeom(R,B,x,start,tdist,pitch,cdist)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+
+ax1.plot(x,np.degrees(theta))
+ax1.set_title("Blade Twist Distribution")
+ax1.set_xlabel("Radial Position (r/R)")
+ax1.set_ylabel("Twist Angle (deg)")
+ax1.grid(True)
+ax1.legend()
+
+ax2.plot(x,cdist)
+ax2.set_title("Blade Chord Distribution")
+ax2.set_xlabel("Radial Position (r/R)")
+ax2.set_ylabel("Chord Length (m)")
+ax2.grid(True)
+ax2.legend()
+
+plt.show()
 
 ### Main Iteration Loop
 

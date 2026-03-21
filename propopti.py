@@ -34,10 +34,10 @@ cdist = 0.18-0.06*x # for x>0.25
 # pitch = np.radians(0.03436332) # np.radians(40) # np.radians(0.03436332)
 
 xi = [0.25,0.5,0.7,1.0]
-tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[45.53810998, 30.60890109,  0.,         13.92684386],x))
+tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[25.53810998, 10.60890109,  0.,         -5.92684386],x))
 cdist = sp.interpolate.pchip_interpolate(xi,[0.2,
   0.22,        0.18,        0.14],x)
-pitch = np.radians(-1.18840555) # np.radians(40) # np.radians(0.03436332)
+pitch = np.radians(35) # np.radians(40) # np.radians(0.03436332)
 
 # xi = [0.25,0.5,0.7,1.0]
 # # tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[51.69690749, 49.64579799,  0,          9.61612702],x))

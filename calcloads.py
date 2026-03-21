@@ -13,8 +13,8 @@ def load_airfoil_data(path):
     return alpha_polar_deg, cl_polar, cd_polar
 
 # alpha_polar_deg, cl_polar, cd_polar = load_airfoil_data('data/ARAD8pct_polar.txt')
-# plt.plot(alpha_polar_deg,cl_polar)
-# # plt.plot(alpha_polar_deg,cl_polar/cd_polar)
+# # plt.plot(alpha_polar_deg,cl_polar)
+# plt.plot(alpha_polar_deg,cl_polar/cd_polar)
 # plt.show()
 
 def getforces(alpha_rad, alpha_polar_deg, cl_polar, cd_polar):
@@ -304,18 +304,13 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
         a_prime = 0.25*a_prime+0.75*aprime_old
 
         if a>=0.95: a=0.95
-        if a_prime>0.95: a_prime=0
+        if a<=-0.95: a=-0.95
+        if a_prime>0.95: a_prime=0.4
+        if a_prime<=-0.95: a_prime=-0.4
 
         # 7. Convergence check
         error = abs(a - a_old) + abs(a_prime - aprime_old)
-        # print(error)
         iteration += 1
-    
-    # print("Finished in "+str(iteration)+" iterations.")
-
-    # print(a)  
-    # print(a_prime)
-    # print(alpha)
 
     # Calculate loads
     V_rel =(U0*(1+a))/np.sin(phi)

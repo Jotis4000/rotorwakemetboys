@@ -27,7 +27,7 @@ rho = 1.00649
 fi = 0
 ry = 0
 
-J = 2.4
+J = 2.14285714
 RPM = U0/(J*2*R)*60
 
 tol = 1e-4
@@ -104,10 +104,10 @@ boundsBez = [
 xi = [0.25,0.5,0.7,1.0]
 
 res = differential_evolution(objectivefunctionBez,boundsBez,args=(R, B, start, U0, RPM, J, x, airfoil, xi),strategy='best1bin', 
-                                maxiter=5, popsize=15, polish=True, disp=True)
+                                maxiter=50, popsize=15, polish=True, disp=True)
 
 print(f"Optimal variables: {res.x}")
-print(f"Maximum PowerCoefficient: {-res.fun*2/(rho*np.pi*R**2*U0**3)}")
+print(f"Maximum Power Harvesting Coefficient: {-res.fun*2/(rho*np.pi*R**2*U0**3)}")
 
 twist = sp.interpolate.pchip_interpolate(xi,[res.x[0]+res.x[4],res.x[1]+res.x[4],res.x[2]+res.x[4],res.x[3]+res.x[4]],x)
 chord = sp.interpolate.pchip_interpolate(xi,[res.x[5],res.x[6],res.x[7],res.x[8]],x)

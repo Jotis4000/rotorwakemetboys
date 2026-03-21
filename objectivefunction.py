@@ -138,7 +138,8 @@ def objectivefunctionBez(params, R, B, start, U0, RPM, J, x, airfoil, xi):
     # Run BEM
     for i in range(n):
         r_local = x[i] * R
-        results[i, :] = calcloads.calculate_turbine2(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,airfoil)
+        # results[i, :] = calcloads.calculate_turbine2(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,airfoil)
+        results[i, :] = calcloads.calculate_element_loads3(x[i]*R,R,start*R,c[i],theta[i],U0,RPM/60*2*np.pi,sigma[i],B,J,airfoil)
 
     # Calc power
     dr = np.diff(x * R)
@@ -147,9 +148,10 @@ def objectivefunctionBez(params, R, B, start, U0, RPM, J, x, airfoil, xi):
     P = omega * Q
 
     # # Penalties for invalid geometry or NaNs
-    if np.any(np.degrees(results[:,5]))<-10:
+    if (np.degrees(results[:,5])<-10).any():
+        # print("AH")
         return 1e9
 
     # print(str(B*c/(2*np.pi*R)))
 
-    return -P
+    return P
