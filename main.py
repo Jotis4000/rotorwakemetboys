@@ -24,10 +24,10 @@ cdist = 0.18-0.06*x # for x>0.25
 # cdist = sp.interpolate.pchip_interpolate(xi,[0.2,0.22,0.15,0.14],x)
 # pitch = np.radians(30)
 
-# xi = [0.25,0.5,0.7,1.0]
-# tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[20.8362307,   10.03308008,   0.,         -10.06593984],x))
-# cdist = sp.interpolate.pchip_interpolate(xi,[0.16263473,   0.18026756,   0.17807533,   0.13926443],x)
-# pitch = np.radians(30.85819216) # 21.10674679
+xi = [0.25,0.5,0.7,1.0]
+tdist2 = np.radians(sp.interpolate.pchip_interpolate(xi,[20.8362307,   10.03308008,   0.,         -10.06593984],x))
+cdist2 = sp.interpolate.pchip_interpolate(xi,[0.16263473,   0.18026756,   0.17807533,   0.13926443],x)
+pitch2 = np.radians(30.85819216) # 21.10674679
 
 airfoil = "data/ARAD8pct_polar.txt"
 
@@ -36,8 +36,7 @@ airfoil = "data/ARAD8pct_polar.txt"
 U0 = 60
 h = 2000
 rho = 1.00649
-fi = 0
-ry = 0
+pinf = 79495
 
 J = np.array([1.6,2.0,2.4]) #1.95
 # J = np.array([1.6,2.14285714,2.4]) #1.95
@@ -52,27 +51,30 @@ tol = 1e-6
 
 c, theta, sigma = defgeom.defGeom(R,B,x,start,tdist,pitch,cdist)
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 
-ax1.plot(x,np.degrees(theta))
+ax1.plot(x,np.degrees(theta),color="black",label="Original")
+ax1.plot(x,np.degrees(tdist2)+np.degrees(pitch2),color="red",label="Optimized")
 ax1.set_title("Blade Twist Distribution")
-ax1.set_xlabel("Radial Position (r/R)")
-ax1.set_ylabel("Twist Angle (deg)")
+ax1.set_xlabel("Radial Position [$r/R$]")
+ax1.set_ylabel("Twist Angle [$\degree$]")
 ax1.grid(True)
 ax1.legend()
 
-ax2.plot(x,cdist)
+ax2.plot(x,cdist,color="black",label="Original")
+ax2.plot(x,cdist2,color="red",label="Optimized")
 ax2.set_title("Blade Chord Distribution")
-ax2.set_xlabel("Radial Position (r/R)")
-ax2.set_ylabel("Chord Length (m)")
+ax2.set_xlabel("Radial Position [$r/R$]")
+ax2.set_ylabel("Chord Normalized Length [$-$]")
+ax2.set_ylim([0,0.2])
 ax2.grid(True)
 ax2.legend()
 
-plt.show()
+# plt.show()
 
 ### Main Iteration Loop
 
-results = np.zeros([3,len(x)-1,7])
+results = np.zeros([3,len(x)-1,8])
 
 for j in range(len(J)):
     for i in range(len(x)-1):
@@ -107,8 +109,41 @@ print("Power: "+str(P))
 print("CP: "+str(CP))
 print("Eta: "+str(T*U0/P))
 
-# print(results[1,1,6])
-# plt.plot(x[:99],np.degrees(results[0,:,5]),label=r"$a$",color="black")
+### PRESSURE CALCULATIONS
+
+p1 = pinf+0.5*rho*U0**2
+p2 = p1
+p3 = p2+0.5*rho*results[1,:,2]*U0**2*2
+# p3alt = p2+results[1,:,0]/(np.pi*(x[:(el-1)]*R)**2)
+p4 = p3
+
+figpres = plt.figure(figsize=(10,5))
+# for i in range(int(el/10)):
+#     plt.plot([-1,0,0,1],[p1,p2,p3[i*10],p4[i*10]],label=str(i*10))
+plt.plot(x*R,[p1/1000]*(el),label="Ambient and Upwind",color="orange")
+# plt.plot(x*R,[p2]*(el))
+plt.plot(x[:(el-1)]*R,p3/1000,label="Downwind and Infinity",color="red")
+# plt.plot(x[:(el-1)]*R,p3alt)
+# plt.plot(x[:(el-1)]*R,p4)
+plt.xlabel("Radial Position [$m$]")
+plt.ylabel("Total Pressure [$kPa$]")
+plt.legend()
+
+fig, ax1 = plt.subplots(figsize=(8,5))
+
+ax1.set_xlabel('$r/R$ [-]')
+ax1.set_ylabel(r'Angle of Attack $\alpha$ [-]', color="red")
+ax1.plot(x[1:(el-1)],np.degrees(results[1,:,5][1:]), color="red")
+ax1.tick_params(axis='y', labelcolor="red")
+
+ax2 = ax1.twinx()  # instantiate a second Axes that shares the same x-axis
+
+ax2.set_ylabel(r'L/D [-]', color="blue")  # we already handled the x-label with ax1
+ax2.plot(x[1:(el-1)], results[1,:,7][1:], color="blue")
+ax2.tick_params(axis='y', labelcolor="blue")
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
 
 ### ALPHA
 
@@ -120,7 +155,7 @@ plt.plot(x[1:(el-1)],np.degrees(results[2,:,5][1:]),label=r"$J=$"+str(J[2]),colo
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Angle of Attack $\alpha$ [$\degree$]")
 plt.legend()
-plt.show()
+# plt.show()
 
 ### PHI
 
@@ -132,7 +167,7 @@ plt.plot(x[1:(el-1)],np.degrees(results[2,:,4][1:]),label=r"$J=$"+str(J[2]),colo
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Inflow Angle $\phi$ [$\degree$]")
 plt.legend()
-plt.show()
+# plt.show()
 
 ### a and a'
 
@@ -157,22 +192,6 @@ ax1.legend()
 ax2.legend()
 ax3.legend()
 plt.tight_layout()
-plt.show()
-
-# fig2 = plt.figure(figsize=(8,5))
-# plt.title(r"Spanwise Distribution of $a$ and $a'$")
-# # plt.plot(x[:(el-1)],results[0,:,2],label=r"$a$",color="black")
-# # plt.plot(x[:(el-1)],results[0,:,3],label=r"$a'$",color="red")
-# # plt.plot(x[:(el-1)],results[1,:,2],label=r"$a$",color="green")
-# # plt.plot(x[:(el-1)],results[1,:,3],label=r"$a'$",color="green")
-# plt.plot(x[:(el-1)],results[2,:,2],label=r"$a$",color="blue")
-# plt.plot(x[:(el-1)],results[2,:,3],label=r"$a'$",color="orange")
-# plt.xlabel("$r/R$ [-]")
-# plt.ylabel("Induction [-]")
-# plt.legend()
-# plt.show()
-
-# plt.plot(x[:(el-1)],results[2,:,6],label=r"$a$",color="blue")
 # plt.show()
 
 ### THRUST DIST.
@@ -185,7 +204,7 @@ plt.plot(x[1:(el-1)],results[2,:,0][1:],label=r"$J=$"+str(J[2]),color="green")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Thrust Distribution [$N/m$]")
 plt.legend()
-plt.show()
+# plt.show()
 
 fig1 = plt.figure(figsize=(10,6))
 plt.title(r"Spanwise Distribution of $dQ$")

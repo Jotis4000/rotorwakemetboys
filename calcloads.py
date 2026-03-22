@@ -326,7 +326,7 @@ def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma,
     dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local * B
     # dT=dQ=1
     
-    return dT, dQ, a, a_prime, phi, alpha, F
+    return dT, dQ, a, a_prime, phi, alpha, F, Cl/Cd
 
 def calculate_element_loads2(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, J, foilpath):
 
