@@ -128,22 +128,6 @@ ax2.set_ylabel("Chord Length (m)")
 ax2.grid(True)
 ax2.legend()
 
-# Plot Twist on the first axis (left)
-# ax1.plot(x, twist, label="Twist", color='blue')
-# ax1.set_title("Blade Twist Distribution")
-# ax1.set_xlabel("Radial Position (r/R)")
-# ax1.set_ylabel("Twist Angle (deg)")
-# ax1.grid(True)
-# ax1.legend()
-
-# # Plot Chord on the second axis (right)
-# ax2.plot(x, chord, label="Chord", color='green')
-# ax2.set_title("Blade Chord Distribution")
-# ax2.set_xlabel("Radial Position (r/R)")
-# ax2.set_ylabel("Chord Length (m)")
-# ax2.grid(True)
-# ax2.legend()
-
 # Adjust layout so labels don't overlap
 plt.tight_layout()
 plt.show()

@@ -16,18 +16,13 @@ x = np.linspace(start,1,el)
 R = 0.7
 B = 6
 tdist = -np.radians(50)*x+np.radians(35) # for x>0.25
-pitch = np.radians(46) # x=0.7
+pitch = np.radians(46) # 29
 cdist = 0.18-0.06*x # for x>0.25
-
-# xi = [0.25,0.5,0.75,1.0]
-# tdist = np.radians(sp.interpolate.pchip_interpolate(xi,[33.0872443,26.61575089,20.80975062,8.55404546],x))
-# cdist = sp.interpolate.pchip_interpolate(xi,[0.2,0.22,0.15,0.14],x)
-# pitch = np.radians(30)
 
 xi = [0.25,0.5,0.7,1.0]
 tdist2 = np.radians(sp.interpolate.pchip_interpolate(xi,[20.8362307,   10.03308008,   0.,         -10.06593984],x))
 cdist2 = sp.interpolate.pchip_interpolate(xi,[0.16263473,   0.18026756,   0.17807533,   0.13926443],x)
-pitch2 = np.radians(30.85819216) # 21.10674679
+pitch2 = np.radians(30.85819216) # +13.4
 
 airfoil = "data/ARAD8pct_polar.txt"
 
@@ -38,7 +33,7 @@ h = 2000
 rho = 1.00649
 pinf = 79495
 
-J = np.array([1.6,2.0,2.4]) #1.95
+J = np.array([1.6,2.13776722,2.4]) # 2.13776722
 # J = np.array([1.6,2.14285714,2.4]) #1.95
 RPM = U0/(J*2*R)*U0
 print("Advance Ratio J: "+str(J))
@@ -50,6 +45,7 @@ tol = 1e-6
 ### Calculate geometry specification
 
 c, theta, sigma = defgeom.defGeom(R,B,x,start,tdist,pitch,cdist)
+c2, theta2, sigma2 = defgeom.defGeom(R,B,x,start,tdist2,pitch2,cdist2)
 
 fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 
@@ -70,16 +66,16 @@ ax2.set_ylim([0,0.2])
 ax2.grid(True)
 ax2.legend()
 
-# plt.show()
-
 ### Main Iteration Loop
 
 results = np.zeros([3,len(x)-1,8])
+results2 = np.zeros([3,len(x)-1,8])
 
 for j in range(len(J)):
     for i in range(len(x)-1):
 
         results[j,i,:] = calcloads.calculate_element_loads3(x[i]*R,R,start*R,c[i],theta[i],U0,RPM[j]/60*2*np.pi,sigma[i],B,J[j],airfoil) # dT, dQ, a, a_prime, phi, alpha
+        results2[j,i,:] = calcloads.calculate_element_loads3(x[i]*R,R,start*R,c2[i],theta2[i],U0,RPM[j]/60*2*np.pi,sigma2[i],B,J[j],airfoil) # dT, dQ, a, a_prime, phi, alpha
 
 plt.rcParams.update({
     "text.usetex": False, # Set to True if you have LaTeX installed on your system
@@ -133,7 +129,7 @@ fig, ax1 = plt.subplots(figsize=(8,5))
 
 ax1.set_xlabel('$r/R$ [-]')
 ax1.set_ylabel(r'Angle of Attack $\alpha$ [-]', color="red")
-ax1.plot(x[1:(el-1)],np.degrees(results[1,:,5][1:]), color="red")
+ax1.plot(x[1:(el-1)],np.degrees(results[1,:,5][     1:]), color="red")
 ax1.tick_params(axis='y', labelcolor="red")
 
 ax2 = ax1.twinx()  # instantiate a second Axes that shares the same x-axis
@@ -216,20 +212,21 @@ plt.ylabel(r"Torque Distribution [$Nm/m$]")
 plt.legend()
 plt.show()
 
-# fig3 = plt.figure(figsize=(8,5))
-# plt.title(r"Spanwise Distribution of $dT$ and $dQ$")
-# plt.plot(x[:(el-1)],results[0,:,0],label=r"$dT$",color="orange")
-# plt.plot(x[:(el-1)],results[0,:,1],label=r"$dQ$",color="green")
-# plt.xlabel("$r/R$ [-]")
-# plt.ylabel("Force or Moment [N or Nm]") ## THIS IS RETARDED
-# plt.legend()
-# plt.show()
+# Final Plots
 
-# plt.plot(J,T,label="Thrust")
-# plt.plot(J,Q,label="Torque")
-# plt.plot(J,P/1000,label="Power")
-# plt.plot()
-# plt.xlabel("Advance Ratio J [-]")
-# plt.ylabel("Force or Moment [N or N]") ## THIS IS RETARDED FIND BETTER WAY TO PLOT
-# plt.legend()
-# plt.show()
+fig1 = plt.figure(figsize=(10,6))
+plt.title(r"Spanwise Distribution of $dT$")
+plt.plot(x[2:(el-1)],results[1,:,0][2:],label=r"Original",color="red")
+plt.plot(x[2:(el-1)],results2[1,:,0][2:],label=r"Optimized",color="darkred")
+plt.xlabel("$r/R$ [-]")
+plt.ylabel(r"Thrust Distribution [$N/m$]")
+plt.legend()
+
+fig1 = plt.figure(figsize=(10,6))
+plt.title(r"Spanwise Distribution of $dQ$")
+plt.plot(x[2:(el-1)],results[1,:,1][2:],label=r"Original",color="red")
+plt.plot(x[2:(el-1)],results2[1,:,1][2:],label=r"Optimized",color="darkred")
+plt.xlabel("$r/R$ [-]")
+plt.ylabel(r"Torque Distribution [$Nm/m$]")
+plt.legend()
+plt.show()
