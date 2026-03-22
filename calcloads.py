@@ -29,8 +29,7 @@ def getforces(alpha_rad, alpha_polar_deg, cl_polar, cd_polar):
 
 def corrections(phi,B,R,r_local,R_root):
 
-#Prandtl Tip and Root Corrections
-    sin_phi = abs(np.sin(phi)) + 1e-8  # Avoid division by zero
+    sin_phi = abs(np.sin(phi)) + 1e-8
 
     #tip correction
     exp_arg_tip = -(B * (R - r_local)) / (2 * r_local * sin_phi)
@@ -38,7 +37,6 @@ def corrections(phi,B,R,r_local,R_root):
 
     #root correction
     exp_arg_root = -(B * (r_local - R_root)) / (2 * r_local * sin_phi)
-    # print(np.exp(exp_arg_root))
     F_root = (2 / np.pi) * np.arccos(np.exp(exp_arg_root))    
 
     #combined correction

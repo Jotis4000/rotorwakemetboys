@@ -6,6 +6,15 @@ import calcloads
 import getforces
 import momcorrections
 
+plt.rcParams.update({
+    "text.usetex": False,
+    "font.family": "serif",
+    "font.size": 12,
+    "axes.grid": True,
+    "grid.linestyle": '--',
+    "grid.alpha": 0.7
+})
+
 ### Geometry Configuration
 
 start = 0.25
@@ -33,21 +42,18 @@ h = 2000
 rho = 1.00649
 pinf = 79495
 
-J = np.array([1.6,2.13776722,2.4]) # 2.13776722
-# J = np.array([1.6,2.14285714,2.4]) #1.95
+J = np.array([1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4]) 
+# J = np.array([1.6,2.0,2.4]) # 2.13776722
 RPM = U0/(J*2*R)*U0
 print("Advance Ratio J: "+str(J))
 print("RPM: "+str(RPM))
-
-maxiter = 101
-tol = 1e-6
 
 ### Calculate geometry specification
 
 c, theta, sigma = defgeom.defGeom(R,B,x,start,tdist,pitch,cdist)
 c2, theta2, sigma2 = defgeom.defGeom(R,B,x,start,tdist2,pitch2,cdist2)
 
-fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
 
 ax1.plot(x,np.degrees(theta),color="black",label="Original")
 ax1.plot(x,np.degrees(tdist2)+np.degrees(pitch2),color="red",label="Optimized")
@@ -65,26 +71,18 @@ ax2.set_ylabel("Chord Normalized Length [$-$]")
 ax2.set_ylim([0,0.2])
 ax2.grid(True)
 ax2.legend()
+plt.tight_layout()
 
 ### Main Iteration Loop
 
-results = np.zeros([3,len(x)-1,8])
-results2 = np.zeros([3,len(x)-1,8])
+results = np.zeros([len(J),len(x)-1,8])
+results2 = np.zeros([len(J),len(x)-1,8])
 
 for j in range(len(J)):
     for i in range(len(x)-1):
 
         results[j,i,:] = calcloads.calculate_element_loads3(x[i]*R,R,start*R,c[i],theta[i],U0,RPM[j]/60*2*np.pi,sigma[i],B,J[j],airfoil) # dT, dQ, a, a_prime, phi, alpha
         results2[j,i,:] = calcloads.calculate_element_loads3(x[i]*R,R,start*R,c2[i],theta2[i],U0,RPM[j]/60*2*np.pi,sigma2[i],B,J[j],airfoil) # dT, dQ, a, a_prime, phi, alpha
-
-plt.rcParams.update({
-    "text.usetex": False, # Set to True if you have LaTeX installed on your system
-    "font.family": "serif",
-    "font.size": 12,
-    "axes.grid": True,
-    "grid.linestyle": '--',
-    "grid.alpha": 0.7
-})
 
 T = np.zeros(len(J))
 Q = np.zeros(len(J))
@@ -114,13 +112,8 @@ p3 = p2+0.5*rho*results[1,:,2]*U0**2*2
 p4 = p3
 
 figpres = plt.figure(figsize=(10,5))
-# for i in range(int(el/10)):
-#     plt.plot([-1,0,0,1],[p1,p2,p3[i*10],p4[i*10]],label=str(i*10))
 plt.plot(x*R,[p1/1000]*(el),label="Ambient and Upwind",color="orange")
-# plt.plot(x*R,[p2]*(el))
 plt.plot(x[:(el-1)]*R,p3/1000,label="Downwind and Infinity",color="red")
-# plt.plot(x[:(el-1)]*R,p3alt)
-# plt.plot(x[:(el-1)]*R,p4)
 plt.xlabel("Radial Position [$m$]")
 plt.ylabel("Total Pressure [$kPa$]")
 plt.legend()
@@ -151,7 +144,6 @@ plt.plot(x[1:(el-1)],np.degrees(results[2,:,5][1:]),label=r"$J=$"+str(J[2]),colo
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Angle of Attack $\alpha$ [$\degree$]")
 plt.legend()
-# plt.show()
 
 ### PHI
 
@@ -163,7 +155,6 @@ plt.plot(x[1:(el-1)],np.degrees(results[2,:,4][1:]),label=r"$J=$"+str(J[2]),colo
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Inflow Angle $\phi$ [$\degree$]")
 plt.legend()
-# plt.show()
 
 ### a and a'
 
@@ -188,7 +179,6 @@ ax1.legend()
 ax2.legend()
 ax3.legend()
 plt.tight_layout()
-# plt.show()
 
 ### THRUST DIST.
 
@@ -200,7 +190,7 @@ plt.plot(x[1:(el-1)],results[2,:,0][1:],label=r"$J=$"+str(J[2]),color="green")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Thrust Distribution [$N/m$]")
 plt.legend()
-# plt.show()
+plt.tight_layout()
 
 fig1 = plt.figure(figsize=(10,6))
 plt.title(r"Spanwise Distribution of $dQ$")
@@ -210,6 +200,7 @@ plt.plot(x[1:(el-1)],results[2,:,1][1:],label=r"$J=$"+str(J[2]),color="green")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Torque Distribution [$Nm/m$]")
 plt.legend()
+plt.tight_layout()
 plt.show()
 
 # Final Plots
@@ -221,6 +212,7 @@ plt.plot(x[2:(el-1)],results2[1,:,0][2:],label=r"Optimized",color="darkred")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Thrust Distribution [$N/m$]")
 plt.legend()
+plt.tight_layout()
 
 fig1 = plt.figure(figsize=(10,6))
 plt.title(r"Spanwise Distribution of $dQ$")
@@ -229,4 +221,27 @@ plt.plot(x[2:(el-1)],results2[1,:,1][2:],label=r"Optimized",color="darkred")
 plt.xlabel("$r/R$ [-]")
 plt.ylabel(r"Torque Distribution [$Nm/m$]")
 plt.legend()
+plt.tight_layout()
+plt.show()
+
+fig, [ax1,ax2,ax3] = plt.subplots(1,3,figsize=(14,5))
+
+ax1.set_xlabel('Advance Ratio J [-]')
+ax1.set_ylabel(r'Thrust [$N$]')
+ax1.plot(J,T, color="darkblue", label="Thrust")
+ax1.tick_params(axis='y')
+ax1.legend()
+
+ax2.set_xlabel('Advance Ratio J [-]')
+ax2.set_ylabel(r'Torque [$Nm$]')
+ax2.plot(J,Q, color="red",label="Torque")
+ax2.tick_params(axis='y')
+ax2.legend()
+
+ax3.set_xlabel('Advance Ratio J [-]')
+ax3.set_ylabel(r'Power [$kW$]')
+ax3.plot(J,P/1000, color="orange",label="Power")
+ax3.tick_params(axis='y')
+ax3.legend()
+fig.tight_layout()
 plt.show()
