@@ -261,6 +261,92 @@ def calculate_turbine(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, foi
 
     return dT, dQ, a, a_prime, phi, alpha, F
 
+def corrections_notip(phi,B,R,r_local,R_root):
+
+#Prandtl Tip and Root Corrections
+    sin_phi = abs(np.sin(phi)) + 1e-8  # Avoid division by zero
+
+    #tip correction
+    #exp_arg_tip = -(B * (R - r_local)) / (2 * r_local * sin_phi)
+    #F_tip = (2 / np.pi) * np.arccos(np.exp(exp_arg_tip))
+
+    #root correction
+    exp_arg_root = -(B * (r_local - R_root)) / (2 * r_local * sin_phi)
+    # print(np.exp(exp_arg_root))
+    F_root = (2 / np.pi) * np.arccos(np.exp(exp_arg_root))    
+
+    #combined correction
+    F = 1.0 * F_root
+
+    return F
+
+def calculate_element_loads_notipcorr(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, J, foilpath):
+
+    a = 0.3
+    a_prime = 0.0
+    tolerance = 1e-6
+    max_iter = 1000
+    iteration = 0
+    error = 1.0
+    phi = 0
+    
+    alpha_polar_deg, cl_polar, cd_polar = load_airfoil_data(foilpath)
+
+    while error > tolerance and iteration < max_iter:
+        a_old = a
+        aprime_old = a_prime
+        
+        # Flow angle (phi)
+        phi = np.arctan2((U0 * (1 + a)),(Omega * r_local * (1 - a_prime)))
+        
+        #Angle of attack (alpha)
+        alpha = theta - phi
+        
+        # get cl and cd
+        Cl, Cd = getforces(alpha, alpha_polar_deg, cl_polar, cd_polar)
+        
+        F = corrections_notip(phi,B,R,r_local,R_root)
+        if F==0:
+            F=0.2
+            # F = 
+
+        # if(r_local==0.25*0.7):
+        #     print(F)
+
+        f1 = sigma*(Cl*np.cos(phi))/(4*F*np.sin(phi)**2)
+        f2 = sigma*(Cl)/(4*F*np.cos(phi))
+
+        Cn = Cl * np.cos(phi) -Cd *np.sin(phi)
+        Ct = Cl *np.sin(phi)+ Cd * np.cos(phi)
+
+        a = f1/(1-f1)
+        a_prime = f2/(1+f2)
+
+        a = 0.25*a+0.75*a_old
+        a_prime = 0.25*a_prime+0.75*aprime_old
+
+        if a>=0.95: a=0.95
+        if a<=-0.95: a=-0.95
+        if a_prime>0.95: a_prime=0.4
+        if a_prime<=-0.95: a_prime=-0.4
+
+        # if r_local < R_root * 1.05: # Apply a 5% buffer near the root
+        #     a = 0
+        #     a_prime = 0
+
+        # 7. Convergence check
+        error = abs(a - a_old) + abs(a_prime - aprime_old)
+        iteration += 1
+
+    # Calculate loads
+    V_rel =(U0*(1+a))/np.sin(phi)
+    rho = 1.0065 # Isa adjusted for 2000m altitude
+    dT = 0.5 * rho * (V_rel**2) * chord * Cn * B
+    dQ = 0.5 * rho * (V_rel**2) * chord * Ct * r_local * B
+    # dT=dQ=1
+    
+    return dT, dQ, a, a_prime, phi, alpha, F, Cl/Cd
+
 def calculate_element_loads3(r_local, R, R_root, chord, theta, U0, Omega, sigma, B, J, foilpath):
 
     a = 0.3
