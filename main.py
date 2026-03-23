@@ -3,7 +3,6 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import defgeom
 import calcloads
-import getforces
 import momcorrections
 
 plt.rcParams.update({
@@ -42,8 +41,8 @@ h = 2000
 rho = 1.00649
 pinf = 79495
 
-J = np.array([1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4]) 
-# J = np.array([1.6,2.0,2.4]) # 2.13776722
+# J = np.array([1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4]) 
+J = np.array([1.6,2.0,2.4]) # 2.13776722
 RPM = U0/(J*2*R)*U0
 print("Advance Ratio J: "+str(J))
 print("RPM: "+str(RPM))
@@ -102,21 +101,6 @@ print("Torque: "+str(Q))
 print("Power: "+str(P))
 print("CP: "+str(CP))
 print("Eta: "+str(T*U0/P))
-
-### PRESSURE CALCULATIONS
-
-p1 = pinf+0.5*rho*U0**2
-p2 = p1
-p3 = p2+0.5*rho*results[1,:,2]*U0**2*2
-# p3alt = p2+results[1,:,0]/(np.pi*(x[:(el-1)]*R)**2)
-p4 = p3
-
-figpres = plt.figure(figsize=(10,5))
-plt.plot(x*R,[p1/1000]*(el),label="Ambient and Upwind",color="orange")
-plt.plot(x[:(el-1)]*R,p3/1000,label="Downwind and Infinity",color="red")
-plt.xlabel("Radial Position [$m$]")
-plt.ylabel("Total Pressure [$kPa$]")
-plt.legend()
 
 fig, ax1 = plt.subplots(figsize=(8,5))
 
