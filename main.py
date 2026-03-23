@@ -3,7 +3,6 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import defgeom
 import calcloads
-import momcorrections
 
 plt.rcParams.update({
     "text.usetex": False,

@@ -2,7 +2,6 @@ import numpy as np
 import scipy as sp
 import defgeom
 import calcloads
-import getforces
 import momcorrections
 
 def calculate_CP(results, R, RPM, x):
@@ -133,7 +132,7 @@ def objectivefunctionBez(params, R, B, start, U0, RPM, J, x, airfoil, xi):
     c, theta, sigma = defgeom.defGeom(R, B, x, start, tdist, pitch, cdist)
 
     n = len(x) - 1
-    results = np.zeros((n, 7))
+    results = np.zeros((n, 8))
 
     # Run BEM
     for i in range(n):

@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import momcorrections
 
 def load_airfoil_data(path):
 

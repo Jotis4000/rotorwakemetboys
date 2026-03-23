@@ -4,7 +4,6 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import defgeom
 import calcloads
-import getforces
 import momcorrections
 from objectivefunction import objectivefunction,objectivefunctionQuad,objectivefunctionQuadNew,objectivefunctionBez
 
